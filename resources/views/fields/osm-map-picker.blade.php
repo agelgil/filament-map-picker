@@ -7,18 +7,15 @@
     :required="$isRequired()"
     :state-path="$getStatePath()"
 >
-    <div
-        x-data="async () => {
+        <div x-data="mapPicker($wire, {{ $getMapConfig() }})" x-init="async () => {
             do {
                 await (new Promise(resolve => setTimeout(resolve, 100)));
-            } while (window.mapPicker === undefined);
-            const m = mapPicker($wire, {{ $getMapConfig()}});
-            m.attach($refs.map);
-        }"
-        wire:ignore>
+            } while (!$refs.map);
+            attach($refs.map);
+        }" wire:ignore>
         <div
             x-ref="map"
-            class="w-full" style="min-height: 30vh; z-index: 1 !important;">
+            class="w-full" style="min-height: 30vh; z-index: 1 !important; {{ $getExtraStyle() }}">
         </div>
     </div>
 </x-filament-forms::field-wrapper>

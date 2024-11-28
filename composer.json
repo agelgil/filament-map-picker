@@ -1,15 +1,19 @@
 {
-    "name": "dotswan/map-picker",
+    "name": "agelgil/filament-map-picker",
     "description": "Easily pick and retrieve geo-coordinates using a map-based interface in your Filament applications.",
     "keywords": [
-        "dotswan",
+        "agelgil",
         "laravel",
-        "map-picker"
+        "map-picker",
+        "filament",
+        "filamentphp",
+        "filament-map-picker",
+        "filament-v3"
     ],
-    "homepage": "https://github.com/dotswan/map-picker",
+    "homepage": "https://github.com/agelgil/filament-map-picker",
     "support": {
-        "issues": "https://github.com/dotswan/map-picker/issues",
-        "source": "https://github.com/dotswan/map-picker"
+        "issues": "https://github.com/agelgil/filament-map-picker/issues",
+        "source": "https://github.com/agelgil/filament-map-picker"
     },
     "license": "MIT",
     "authors": [
@@ -17,13 +21,18 @@
             "name": "Dotswan",
             "email": "tech@dotswan.com",
             "role": "Developer"
+        },
+        {
+            "name": "Samson Endale",
+            "email": "github@sam.et",
+            "role": "Developer"
         }
     ],
     "require": {
         "php": "^8.1",
         "filament/filament": "^3.0",
         "spatie/laravel-package-tools": "^1.15.0",
-        "illuminate/contracts": "^10.0"
+        "illuminate/contracts": "^10.0 || ^11.0"
     },
     "require-dev": {
         "laravel/pint": "^1.0",
@@ -39,13 +48,13 @@
     },
     "autoload": {
         "psr-4": {
-            "Dotswan\\MapPicker\\": "src/",
-            "Dotswan\\MapPicker\\Database\\Factories\\": "database/factories/"
+            "Agelgil\\MapPicker\\": "src/",
+            "Agelgil\\MapPicker\\Database\\Factories\\": "database/factories/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Dotswan\\MapPicker\\Tests\\": "tests/"
+            "Agelgil\\MapPicker\\Tests\\": "tests/"
         }
     },
     "scripts": {
@@ -65,13 +74,13 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Dotswan\\MapPicker\\MapPickerServiceProvider"
+                "Agelgil\\MapPicker\\MapPickerServiceProvider"
             ],
             "aliases": {
-                "MapPicker": "Dotswan\\MapPicker\\Facades\\MapPicker"
+                "MapPicker": "Agelgil\\MapPicker\\Facades\\MapPicker"
             }
         }
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "prefer-stable": true
 }

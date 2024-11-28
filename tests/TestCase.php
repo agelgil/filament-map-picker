@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Dotswan\MapPicker\Tests;
+namespace Agelgil\MapPicker\Tests;
 
 use BladeUI\Heroicons\BladeHeroiconsServiceProvider;
 use BladeUI\Icons\BladeIconsServiceProvider;
@@ -20,7 +20,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 use RyanChandler\BladeCaptureDirective\BladeCaptureDirectiveServiceProvider;
-use Dotswan\MapPicker\MapPickerServiceProvider;
+use Agelgil\MapPicker\MapPickerServiceProvider;
 
 class TestCase extends Orchestra
 {
@@ -29,7 +29,7 @@ class TestCase extends Orchestra
         parent::setUp();
 
         Factory::guessFactoryNamesUsing(
-            fn (string $modelName) => 'Dotswan\\MapPicker\\Database\\Factories\\'.class_basename($modelName).'Factory'
+            fn (string $modelName) => 'Agelgil\\MapPicker\\Database\\Factories\\'.class_basename($modelName).'Factory'
         );
     }
 
