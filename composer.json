@@ -75,10 +75,7 @@
         "laravel": {
             "providers": [
                 "Agelgil\\MapPicker\\MapPickerServiceProvider"
-            ],
-            "aliases": {
-                "MapPicker": "Agelgil\\MapPicker\\Facades\\MapPicker"
-            }
+            ]
         }
     },
     "minimum-stability": "stable",

@@ -26,9 +26,7 @@ class MapPickerServiceProvider extends PackageServiceProvider
         $package->name(static::$name)
             ->hasCommands($this->getCommands())
             ->hasInstallCommand(function (InstallCommand $command): void {
-                $command
-                    ->publishConfigFile()
-                    ->askToStarRepoOnGitHub('Agelgil/filament-map-picker');
+                $command->publishConfigFile();
             });
 
         $configFileName = $package->shortName();
@@ -69,7 +67,7 @@ class MapPickerServiceProvider extends PackageServiceProvider
 
     protected function getAssetPackageName(): ?string
     {
-        return 'Agelgil/filament-map-picker';
+        return 'agelgil/filament-map-picker';
     }
 
     /**

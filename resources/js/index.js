@@ -8,11 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const mapPicker = ($wire, config, state) => {
         return {
             map: null,
-            tile: null,
+            layerControl: null,
             marker: null,
-            rangeCircle: null,
             drawItems: null,
-            rangeSelectField: null,
 
             createMap: function (el) {
                 const that = this;
@@ -21,7 +19,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     L.Control.Attribution.prototype.options.prefix = false;
                 }
 
-                this.map = L.map(el, config.controls);
+                const baseMaps = {};
+                config.layers.forEach(layer => {
+                    baseMaps[layer.label] = L.tileLayer(layer.url, {
+                        minZoom: 1,
+                        maxZoom: 28,
+                        tileSize: 256,
+                        detectRetina: true,
+                        ...layer.control,
+                   });
+                });
+
+                this.map = L.map(el, {
+                    ...config.controls,
+                    layers: [baseMaps[Object.keys(baseMaps)[0]]],
+                });
+
+                this.layerControl = L.control.layers(baseMaps, {}).addTo(this.map);
 
                 if(config.bounds)
                 {
@@ -52,23 +66,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
 
-                this.tile = L.tileLayer(config.tilesUrl, {
-                    attribution: config.attribution,
-                    minZoom: config.minZoom,
-                    maxZoom: config.maxZoom,
-                    tileSize: config.tileSize,
-                    zoomOffset: config.zoomOffset,
-                    detectRetina: config.detectRetina,
-                }).addTo(this.map);
-
-                if (L.Util.isArray(config.layers) && config.layers.length > 0) {
-                    const layerControl = L.control.layers({}, {}).addTo(this.map);
-
-                    config.layers.forEach(layer => {
-                        layerControl.addBaseLayer(L.tileLayer(layer.url, layer.options), layer.label);
-                    });
-                }
-
                 if (config.showMarker) {
                     const markerColor = config.markerColor || "#3b82f6";
                     const svgIcon = L.divIcon({
@@ -82,7 +79,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         draggable: false,
                         autoPan: true
                     }).addTo(this.map);
-                    this.setMarkerRange();
                     if(!config.clickable)
                     {
                         this.map.on('move', () => this.setCoordinates(this.map.getCenter()));
@@ -209,7 +205,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                 }
                             }).addTo(this.map);
 
-                            this.map.fitBounds(this.drawItems.getBounds());
+                            setTimeout(() => {
+                                this.map.flyToBounds(this.drawItems.getBounds());
+                            }, 500);
 
                             if(config.geoMan.editable){
                                 // Enable editing for each layer
@@ -219,8 +217,6 @@ document.addEventListener('DOMContentLoaded', () => {
                                     });
                                 });
                             }
-
-                            this.map.fitBounds(this.drawItems.getBounds());
                     }
               }
 
@@ -248,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             getGeoJson: function() {
                 const state = $wire.get(config.statePath) ?? {};
-                return state.geojson;
+                return state.geojson ?? this.state.geojson;
             },
 
             updateLocation: function() {
@@ -273,8 +269,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.marker.remove();
                     this.marker = null;
                 }
-                this.tile.remove();
-                this.tile = null;
+                this.layerControl.remove();
+                this.layerControl = null;
                 this.map.off();
                 this.map.remove();
                 this.map = null;
@@ -334,8 +330,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if ('geolocation' in navigator) {
                     navigator.geolocation.getCurrentPosition(async position => {
                         const currentPosition = new L.LatLng(position.coords.latitude, position.coords.longitude);
-                        await this.map.flyTo(currentPosition);
-
+                        const zoom = 16 - Math.log2(position.coords.accuracy / 500);
+                        await this.map.flyTo(currentPosition, zoom - 3);
                         if (!config.clickable) {
                             this.updateLocation();
                             this.updateMarker();
@@ -381,49 +377,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 control.addTo(this.map);
             },
 
-            setMarkerRange: function () {
-                let distance = 0;
-
-                if (this.rangeSelectField) {
-                    distance = parseInt(this.rangeSelectField.value || 0 ) ;
-                }
-
-                if (config.showMarker && distance > 0) {
-                    let location = $wire.get(config.statePath) ?? {};
-
-                    const hasValidCoordinates = location.hasOwnProperty('lat') && location.hasOwnProperty('lng') &&
-                      location.lat !== null && location.lng !== null;
-
-                    if (hasValidCoordinates) {
-                        if (this.rangeCircle) {
-                            this.rangeCircle.setLatLng(this.getCoordinates()).setRadius(distance);
-                        } else {
-                            this.rangeCircle = L.circle(this.getCoordinates(), {
-                                color: 'blue',
-                                fillColor: '#f03',
-                                fillOpacity: 0.5,
-                                radius: distance // The radius in meters
-                            }).addTo(this.map);
-                        }
-                    }
-                }
-            },
-
             init: function() {
                 this.$wire = $wire;
                 this.config = config;
                 this.state = state;
-                this.rangeSelectField = document.getElementById(config.rangeSelectField || 'data.distance');
-                if (this.rangeSelectField) {
-                    this.rangeSelectField.addEventListener('change', () => this.updateMarker());
-                }
                 $wire.on('refreshMap', this.refreshMap.bind(this));
             },
 
             updateMarker: function() {
                 if (config.showMarker) {
                     this.marker.setLatLng(this.getCoordinates());
-                    this.setMarkerRange();
                     setTimeout(() => this.updateLocation(), 500);
                 }
             },
