@@ -182,8 +182,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                     }
                                 },
                                 onEachFeature: (feature, layer) => {
-
-                                    if (feature.geometry.type === 'Polygon') {
+                                    if (feature.properties && feature.properties.popupContent) {
+                                        layer.bindPopup(feature.properties.popupContent);
+                                    } else if (feature.geometry.type === 'Polygon') {
                                         layer.bindPopup("Polygon Area");
                                     } else if (feature.geometry.type === 'Point') {
                                         layer.bindPopup("Point Location");
@@ -207,6 +208,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                     });
                                 }
                             }).addTo(this.map);
+
+                            this.map.fitBounds(this.drawItems.getBounds());
 
                             if(config.geoMan.editable){
                                 // Enable editing for each layer
