@@ -79,13 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         draggable: false,
                         autoPan: true
                     }).addTo(this.map);
-                    if(!config.clickable)
-                    {
-                        this.map.on('move', () => this.setCoordinates(this.map.getCenter()));
-                    }
                 }
-
-                this.map.on('moveend', () => setTimeout(() => this.updateLocation(), 500));
 
                 this.map.on('locationfound', function () {
                     that.map.setZoom(config.controls.zoom);
@@ -101,6 +95,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 } else {
                     this.map.setView(new L.LatLng(location.lat, location.lng));
+                    this.marker.setLatLng(new L.LatLng(location.lat, location.lng));
+
+                    setTimeout(() => {
+                        this.map.flyTo(new L.LatLng(location.lat, location.lng), 18);
+                    }, 500);
                 }
 
                 if (config.showMyLocationButton) {
@@ -247,20 +246,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 return state.geojson ?? this.state.geojson;
             },
 
-            updateLocation: function() {
-                let coordinates = this.getCoordinates();
-                let currentCenter = this.map.getCenter();
+            updateLocation: function(coordinates) {
+                $wire.set(config.statePath, {
+                    ...$wire.get(config.statePath),
+                    ...coordinates,
+                }, false);
 
-                if (coordinates.lng !== currentCenter.lng || coordinates.lat !== currentCenter.lat) {
-                    $wire.set(config.statePath, {
-                        ...$wire.get(config.statePath),
-                        lat: currentCenter.lat,
-                        lng: currentCenter.lng
-                    }, false);
-
-                    if (config.liveLocation.send) {
-                        $wire.$refresh();
-                    }
+                if (config.liveLocation.send) {
+                    $wire.$refresh();
                 }
             },
 
@@ -332,10 +325,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         const currentPosition = new L.LatLng(position.coords.latitude, position.coords.longitude);
                         const zoom = 16 - Math.log2(position.coords.accuracy / 500);
                         await this.map.flyTo(currentPosition, zoom - 3);
-                        if (!config.clickable) {
-                            this.updateLocation();
-                            this.updateMarker();
-                        }
                     }, error => {
                         console.error('Error fetching current location:', error);
                     });
@@ -386,8 +375,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             updateMarker: function() {
                 if (config.showMarker) {
-                    this.marker.setLatLng(this.getCoordinates());
-                    setTimeout(() => this.updateLocation(), 500);
+                    let coordinates = this.getCoordinates()
+                    this.marker.setLatLng(coordinates);
+                    setTimeout(() => this.updateLocation(coordinates), 500);
                 }
             },
 
