@@ -48,11 +48,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         that.map.panInsideBounds(bounds, { animate: false });
                     });
                 }
+
                 this.map.on('load', () => {
                     setTimeout(() => this.map.invalidateSize(true), 0);
-                    if (config.showMarker) {
-                        this.marker.setLatLng(this.map.getCenter());
-                    }
                 });
 
                 if (!config.draggable) {
@@ -93,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         enableHighAccuracy: true,
                         watch: false
                     });
-                } else {
+                } else if(config.showMarker) {
                     this.map.setView(new L.LatLng(location.lat, location.lng));
                     this.marker.setLatLng(new L.LatLng(location.lat, location.lng));
 
@@ -243,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             getGeoJson: function() {
                 const state = $wire.get(config.statePath) ?? {};
-                return state.geojson ?? this.state.geojson;
+                return state?.geojson ?? this.state?.geojson ?? null;
             },
 
             updateLocation: function(coordinates) {
@@ -285,18 +283,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 return location;
             },
 
-            setCoordinates: function (coords) {
+            setCoordinates: function (coordinates) {
 
                 $wire.set(config.statePath, {
                     ...$wire.get(config.statePath),
-                    lat: coords.lat,
-                    lng: coords.lng
+                    lat: coordinates.lat,
+                    lng: coordinates.lng
                 }, false);
 
                 if (config.liveLocation.send) {
                     $wire.$refresh();
                 }
-                this.updateMarker();
+
+                this.updateMarker(coordinates);
+
                 return coords;
             },
 
@@ -373,17 +373,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 $wire.on('refreshMap', this.refreshMap.bind(this));
             },
 
-            updateMarker: function() {
+            updateMarker: function(coordinates) {
                 if (config.showMarker) {
-                    let coordinates = this.getCoordinates()
                     this.marker.setLatLng(coordinates);
                     setTimeout(() => this.updateLocation(coordinates), 500);
                 }
             },
 
             refreshMap: function() {
-                this.map.flyTo(this.getCoordinates());
-                this.updateMarker();
+                const coordinates = this.getCoordinates();
+                this.map.flyTo(coordinates);
+                this.updateMarker(coordinates);
             }
         };
     };
