@@ -381,9 +381,65 @@ document.addEventListener('DOMContentLoaded', () => {
             },
 
             refreshMap: function() {
-                const coordinates = this.getCoordinates();
-                this.map.flyTo(coordinates);
-                this.updateMarker(coordinates);
+                const state = $wire.get(config.statePath) ?? {};
+                const geoJson = state?.geojson ?? null;
+
+                if (geoJson) {
+                    this.drawItems.clearLayers();
+                    this.drawItems = L.geoJSON(geoJson, {
+                        style: function(feature) {
+                            if (feature.geometry.type === 'Polygon') {
+                                return {
+                                    color: config.geoMan.color || "#3388ff",
+                                    fillColor: config.geoMan.filledColor || 'blue',
+                                    weight: 2,
+                                    fillOpacity: 0.4
+                                };
+                            }
+                        },
+                        onEachFeature: (feature, layer) => {
+                            if (feature.properties && feature.properties.popupContent) {
+                                layer.bindPopup(feature.properties.popupContent);
+                            } else if (feature.geometry.type === 'Polygon') {
+                                layer.bindPopup("Polygon Area");
+                            } else if (feature.geometry.type === 'Point') {
+                                layer.bindPopup("Point Location");
+                            }
+
+                            if (config.geoMan.editable) {
+                                if (feature.geometry.type === 'Polygon') {
+                                    layer.pm.enable({
+                                        allowSelfIntersection: false
+                                    });
+                                } else if (feature.geometry.type === 'Point') {
+                                    layer.pm.enable({
+                                        draggable: true
+                                    });
+                                }
+                            }
+
+                            layer.on('pm:edit', () => {
+                                this.updateGeoJson();
+                            });
+                        }
+                    }).addTo(this.map);
+
+                    setTimeout(() => {
+                        this.map.flyToBounds(this.drawItems.getBounds());
+                    }, 500);
+
+                    if(config.geoMan.editable){
+                        this.drawItems.eachLayer(layer => {
+                            layer.pm.enable({
+                                allowSelfIntersection: false,
+                            });
+                        });
+                    }
+                } else {
+                    const coordinates = this.getCoordinates();
+                    this.map.flyTo(coordinates);
+                    this.updateMarker(coordinates);
+                }
             }
         };
     };
