@@ -134,13 +134,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         this.map.on('pm:create', (e) => {
                             if (e.layer && e.layer.pm) {
                                 e.layer.pm.enable();
+                                e.layer.on('pm:edit', () => {
+                                    this.updateGeoJson();
+                                });
                                 this.drawItems.addLayer(e.layer);
                                 this.updateGeoJson();
                             }
-                        });
-
-                        this.map.on('pm:edit', () => {
-                            this.updateGeoJson();
                         });
 
                         this.map.on('pm:remove', (e) => {
