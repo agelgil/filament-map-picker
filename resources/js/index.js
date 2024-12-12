@@ -169,7 +169,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                             color: config.geoMan.color || "#3388ff",
                                             fillColor: config.geoMan.filledColor || 'blue',
                                             weight: 2,
-                                            fillOpacity: 0.4
+                                            fillOpacity: 0.2,
+
+                                            ...feature.properties.style || {}
                                         };
                                     }
                                 },
@@ -218,6 +220,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Hash setup
                 this.map.addHash()
+
+                // Add background
+                state = $wire.get(config.statePath);
+                if (state.background) {
+                    L.geoJSON(state.background, {
+                        style: function (feature) {
+                            return {
+                                stroke: false,
+                                color: '#ffff00',
+                                fillOpacity: 0.1,
+                                ...feature.properties.style || {}
+                            };
+                        }
+                    }).addTo(this.map);
+                }
             },
 
             updateGeoJson: function() {
