@@ -11,11 +11,12 @@ document.addEventListener('DOMContentLoaded', () => {
             layerControl: null,
             marker: null,
             drawItems: null,
+            background: null,
 
             createMap: function (el) {
                 const that = this;
 
-                if (! config.prefix) {
+                if (!config.prefix) {
                     L.Control.Attribution.prototype.options.prefix = false;
                 }
 
@@ -27,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         tileSize: 256,
                         detectRetina: true,
                         ...layer.control,
-                   });
+                    });
                 });
 
                 this.map = L.map(el, {
@@ -37,15 +38,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 this.layerControl = L.control.layers(baseMaps, {}).addTo(this.map);
 
-                if(config.bounds)
-                {
+                if (config.bounds) {
                     let southWest = L.latLng(config.bounds.sw.lat, config.bounds.sw.lng);
                     let northEast = L.latLng(config.bounds.ne.lat, config.bounds.ne.lng);
                     let bounds = L.latLngBounds(southWest, northEast);
                     this.map.setMaxBounds(bounds);
                     this.map.fitBounds(bounds);
-                    this.map.on('drag', function() {
-                        that.map.panInsideBounds(bounds, { animate: false });
+                    this.map.on('drag', function () {
+                        that.map.panInsideBounds(bounds, {animate: false});
                     });
                 }
 
@@ -57,9 +57,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.map.dragging.disable();
                 }
 
-                if(config.clickable)
-                {
-                    this.map.on('click', function(e) {
+                if (config.clickable) {
+                    this.map.on('click', function (e) {
                         that.setCoordinates(e.latlng);
                     });
                 }
@@ -91,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         enableHighAccuracy: true,
                         watch: false
                     });
-                } else if(config.showMarker) {
+                } else if (config.showMarker) {
                     this.map.setView(new L.LatLng(location.lat, location.lng));
                     this.marker.setLatLng(new L.LatLng(location.lat, location.lng));
 
@@ -112,124 +111,127 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Geoman setup
                 if (config.geoMan.show) {
-                        this.map.pm.addControls({
-                            position: config.geoMan.position,
-                            drawCircleMarker: config.geoMan.drawCircleMarker,
-                            rotateMode: config.geoMan.rotateMode,
-                            drawMarker: config.geoMan.drawMarker,
-                            drawPolygon: config.geoMan.drawPolygon,
-                            drawPolyline: config.geoMan.drawPolyline,
-                            drawCircle: config.geoMan.drawCircle,
-                            drawText: config.geoMan.drawText,
-                            drawRectangle: config.geoMan.drawRectangle,
-                            editMode: config.geoMan.editMode,
-                            dragMode: config.geoMan.dragMode,
-                            cutPolygon: config.geoMan.cutPolygon,
-                            editPolygon: config.geoMan.editPolygon,
-                            deleteLayer: config.geoMan.deleteLayer
-                        });
+                    this.map.pm.addControls({
+                        position: config.geoMan.position,
+                        drawCircleMarker: config.geoMan.drawCircleMarker,
+                        rotateMode: config.geoMan.rotateMode,
+                        drawMarker: config.geoMan.drawMarker,
+                        drawPolygon: config.geoMan.drawPolygon,
+                        drawPolyline: config.geoMan.drawPolyline,
+                        drawCircle: config.geoMan.drawCircle,
+                        drawText: config.geoMan.drawText,
+                        drawRectangle: config.geoMan.drawRectangle,
+                        editMode: config.geoMan.editMode,
+                        dragMode: config.geoMan.dragMode,
+                        cutPolygon: config.geoMan.cutPolygon,
+                        editPolygon: config.geoMan.editPolygon,
+                        deleteLayer: config.geoMan.deleteLayer
+                    });
 
-                        this.drawItems = new L.FeatureGroup().addTo(this.map);
+                    this.drawItems = new L.FeatureGroup().addTo(this.map);
 
-                        this.map.on('pm:create', (e) => {
-                            if (e.layer && e.layer.pm) {
-                                e.layer.pm.enable();
-                                e.layer.on('pm:edit', () => {
-                                    this.updateGeoJson();
-                                });
-                                this.drawItems.addLayer(e.layer);
+                    this.map.on('pm:create', (e) => {
+                        if (e.layer && e.layer.pm) {
+                            e.layer.pm.enable();
+                            e.layer.on('pm:edit', () => {
                                 this.updateGeoJson();
-                            }
-                        });
+                            });
+                            this.drawItems.addLayer(e.layer);
+                            this.updateGeoJson();
+                        }
+                    });
 
-                        this.map.on('pm:remove', (e) => {
-                            try {
-                                this.drawItems.removeLayer(e.layer);
-                                this.updateGeoJson();
-                            } catch (error) {
-                                console.error("Error during removal of layer:", error);
-                            }
-                        });
+                    this.map.on('pm:remove', (e) => {
+                        try {
+                            this.drawItems.removeLayer(e.layer);
+                            this.updateGeoJson();
+                        } catch (error) {
+                            console.error("Error during removal of layer:", error);
+                        }
+                    });
 
                     // Load existing GeoJSON if available
                     const existingGeoJson = this.getGeoJson();
                     if (existingGeoJson) {
-                            this.drawItems = L.geoJSON(existingGeoJson, {
-                                pointToLayer: (feature, latlng) => {
-                                    return L.circleMarker(latlng, {
-                                        radius: 15,
-                                        color: '#3388ff',
-                                        fillColor: '#3388ff',
-                                        fillOpacity: 0.6
-                                    });
-                                },
-                                style: function(feature) {
-                                    if (feature.geometry.type === 'Polygon') {
-                                        return {
-                                            color: config.geoMan.color || "#3388ff",
-                                            fillColor: config.geoMan.filledColor || 'blue',
-                                            weight: 2,
-                                            fillOpacity: 0.2,
+                        this.drawItems = L.geoJSON(existingGeoJson, {
+                            pointToLayer: (feature, latlng) => {
+                                return L.circleMarker(latlng, {
+                                    radius: 15,
+                                    color: '#3388ff',
+                                    fillColor: '#3388ff',
+                                    fillOpacity: 0.6
+                                });
+                            },
+                            style: function (feature) {
+                                if (feature.geometry.type === 'Polygon') {
+                                    return {
+                                        color: config.geoMan.color || "#3388ff",
+                                        fillColor: config.geoMan.filledColor || 'blue',
+                                        weight: 2,
+                                        fillOpacity: 0.2,
 
-                                            ...feature.properties.style || {}
-                                        };
-                                    }
-                                },
-                                onEachFeature: (feature, layer) => {
-                                    if (feature.properties && feature.properties.popupContent) {
-                                        layer.bindPopup(feature.properties.popupContent);
-                                    } else if (feature.geometry.type === 'Polygon') {
-                                        layer.bindPopup("Polygon Area");
-                                    } else if (feature.geometry.type === 'Point') {
-                                        layer.bindPopup("Point Location");
-                                    }
-
-
-                                    if (config.geoMan.editable) {
-                                        if (feature.geometry.type === 'Polygon') {
-                                            layer.pm.enable({
-                                                allowSelfIntersection: false
-                                            });
-                                        } else if (feature.geometry.type === 'Point') {
-                                            layer.pm.enable({
-                                                draggable: true
-                                            });
-                                        }
-                                    }
-
-                                    layer.on('pm:edit', () => {
-                                        this.updateGeoJson();
-                                    });
+                                        ...feature.properties.style || {}
+                                    };
                                 }
-                            }).addTo(this.map);
+                            },
+                            onEachFeature: (feature, layer) => {
+                                if (feature.properties && feature.properties.popupContent) {
+                                    layer.bindPopup(feature.properties.popupContent);
+                                } else if (feature.geometry.type === 'Polygon') {
+                                    layer.bindPopup("Polygon Area");
+                                } else if (feature.geometry.type === 'Point') {
+                                    layer.bindPopup("Point Location");
+                                }
 
-                            setTimeout(() => {
-                                this.map.flyToBounds(this.drawItems.getBounds());
-                            }, 500);
 
-                            if(config.geoMan.editable){
-                                // Enable editing for each layer
-                                this.drawItems.eachLayer(layer => {
-                                    layer.pm.enable({
-                                        allowSelfIntersection: false,
-                                    });
+                                if (config.geoMan.editable) {
+                                    if (feature.geometry.type === 'Polygon') {
+                                        layer.pm.enable({
+                                            allowSelfIntersection: false
+                                        });
+                                    } else if (feature.geometry.type === 'Point') {
+                                        layer.pm.enable({
+                                            draggable: true
+                                        });
+                                    }
+                                }
+
+                                layer.on('pm:edit', () => {
+                                    this.updateGeoJson();
                                 });
                             }
+                        }).addTo(this.map);
+
+                        setTimeout(() => {
+                            this.map.flyToBounds(this.drawItems.getBounds());
+                        }, 500);
+
+                        if (config.geoMan.editable) {
+                            // Enable editing for each layer
+                            this.drawItems.eachLayer(layer => {
+                                layer.pm.enable({
+                                    allowSelfIntersection: false,
+                                });
+                            });
+                        }
                     }
-              }
+                }
 
                 // Hash setup
                 this.map.addHash()
 
                 // Add background
+                this.background = new L.FeatureGroup().addTo(this.map);
+
                 state = $wire.get(config.statePath);
                 if (state.background) {
-                    L.geoJSON(state.background, {
+                    this.background = L.geoJSON(state.background, {
                         style: function (feature) {
                             return {
-                                stroke: false,
+                                stroke: true,
                                 color: '#ffff00',
-                                fillOpacity: 0.1,
+                                fillOpacity: 0.2,
+                                weight: 1,
                                 ...feature.properties.style || {}
                             };
                         }
@@ -237,7 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             },
 
-            updateGeoJson: function() {
+            updateGeoJson: function () {
                 try {
                     const geoJsonData = this.drawItems.toGeoJSON();
                     if (typeof geoJsonData !== 'object') {
@@ -255,12 +257,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             },
 
-            getGeoJson: function() {
+            getGeoJson: function () {
                 const state = $wire.get(config.statePath) ?? {};
                 return state?.geojson ?? this.state?.geojson ?? null;
             },
 
-            updateLocation: function(coordinates) {
+            updateLocation: function (coordinates) {
                 $wire.set(config.statePath, {
                     ...$wire.get(config.statePath),
                     ...coordinates,
@@ -349,7 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             },
 
-            addLocationButton: function() {
+            addLocationButton: function () {
                 const that = this;
 
                 L.Control.Button = L.Control.extend({
@@ -375,41 +377,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         return container;
                     },
-                    onRemove: function(map) {},
+                    onRemove: function (map) {
+                    },
                 });
 
                 let control = new L.Control.Button()
                 control.addTo(this.map);
             },
 
-            init: function() {
+            init: function () {
                 this.$wire = $wire;
                 this.config = config;
                 this.state = state;
                 $wire.on('refreshMap', this.refreshMap.bind(this));
             },
 
-            updateMarker: function(coordinates) {
+            updateMarker: function (coordinates) {
                 if (config.showMarker) {
                     this.marker.setLatLng(coordinates);
                     setTimeout(() => this.updateLocation(coordinates), 500);
                 }
             },
 
-            refreshMap: function() {
+            refreshMap: function () {
                 const state = $wire.get(config.statePath) ?? {};
+                const lat = state?.lat ?? null;
+                const lng = state?.lng ?? null;
                 const geoJson = state?.geojson ?? null;
+                const background = state?.background ?? null;
 
                 if (geoJson) {
                     this.drawItems.clearLayers();
                     this.drawItems = L.geoJSON(geoJson, {
-                        style: function(feature) {
+                        style: function (feature) {
                             if (feature.geometry.type === 'Polygon') {
                                 return {
                                     color: config.geoMan.color || "#3388ff",
                                     fillColor: config.geoMan.filledColor || 'blue',
                                     weight: 2,
-                                    fillOpacity: 0.4
+                                    fillOpacity: 0.2,
+
+                                    ...feature.properties.style || {}
                                 };
                             }
                         },
@@ -444,17 +452,33 @@ document.addEventListener('DOMContentLoaded', () => {
                         this.map.flyToBounds(this.drawItems.getBounds());
                     }, 500);
 
-                    if(config.geoMan.editable){
+                    if (config.geoMan.editable) {
                         this.drawItems.eachLayer(layer => {
                             layer.pm.enable({
                                 allowSelfIntersection: false,
                             });
                         });
                     }
-                } else {
+                }
+
+                if (lat && lng) {
                     const coordinates = this.getCoordinates();
                     this.map.flyTo(coordinates);
                     this.updateMarker(coordinates);
+                }
+
+                if (background) {
+                    this.background.clearLayers();
+                    this.background = L.geoJSON(background, {
+                        style: function (feature) {
+                            return {
+                                stroke: false,
+                                color: '#ffff00',
+                                fillOpacity: 0.2,
+                                ...feature.properties.style || {}
+                            };
+                        }
+                    }).addTo(this.map);
                 }
             }
         };
