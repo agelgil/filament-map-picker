@@ -224,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.background = new L.FeatureGroup().addTo(this.map);
 
                 state = $wire.get(config.statePath);
-                if (state.background) {
+                if (state && state.background) {
                     this.background = L.geoJSON(state.background, {
                         style: function (feature) {
                             return {

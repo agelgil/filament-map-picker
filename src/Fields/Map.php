@@ -20,8 +20,8 @@ class Map extends Field
         'prefix' => true,
         'layers' => [],
         'bounds' => [
-            'sw' => ['lat' => 8.7, 'lng' => 38.6],
-            'ne' => ['lat' => 9.2, 'lng' => 39.1],
+            'sw' => ['lat' => 8.5, 'lng' => 38.3],
+            'ne' => ['lat' => 9.5, 'lng' => 39.3],
         ],
         'showMarker' => true,
         'draggable' => true,
@@ -29,7 +29,7 @@ class Map extends Field
         'markerColor' => '#3b82f6',
         'liveLocation' => false,
         'showMyLocationButton' => true,
-        'default' => ['lat' => 38.70251, 'lng' => 9.00366],
+        'default' => ['lat' => 9.03454469692794, 'lng' => 38.75096797943116],
         'geoMan' => [
             'show' => false,
             'editable' => true,
