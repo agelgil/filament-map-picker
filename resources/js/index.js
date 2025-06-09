@@ -155,11 +155,30 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (existingGeoJson) {
                         this.drawItems = L.geoJSON(existingGeoJson, {
                             pointToLayer: (feature, latlng) => {
-                                return L.circleMarker(latlng, {
-                                    radius: 15,
-                                    color: '#3388ff',
-                                    fillColor: '#3388ff',
-                                    fillOpacity: 0.6
+                                const svgIcon = L.divIcon({
+                                    html: `
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="map-icon" width="36" height="36" viewBox="0 0 24 24"
+                                            style="
+                                                fill: ${feature.properties.style.fillColor || "#3388ff"},
+                                                stroke: ${feature.properties.style.color || "white"}
+                                            ">
+                                            <path d="M12 0c-4.198 0-8 3.403-8 7.602 0 4.198 3.469 9.21 8 16.398 4.531-7.188 8-12.2 8-16.398 0-4.199-3.801-7.602-8-7.602zm0 11c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z"/>
+                                        </svg>`,
+                                    className: "",
+                                    iconSize: [36, 36],
+                                    iconAnchor: [18, 36],
+                                    popupAnchor: [0, -18]
+                                });
+
+                                return L.marker(latlng, {
+                                    icon: svgIcon,
+                                    draggable: false,
+                                    color: config.geoMan.color || "#3388ff",
+                                    fillColor: config.geoMan.filledColor || 'blue',
+                                    weight: 2,
+                                    fillOpacity: 0.2,
+                                    radius: feature.properties.radius || 10,
+                                    ...feature.properties.style || {}
                                 });
                             },
                             style: function (feature) {
