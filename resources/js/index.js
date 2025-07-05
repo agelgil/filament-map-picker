@@ -5,7 +5,7 @@ import "@geoman-io/leaflet-geoman-free";
 
 
 document.addEventListener('DOMContentLoaded', () => {
-    const mapPicker = ($wire, config, state) => {
+    window.mapPicker = ($wire, config, state) => {
         return {
             map: null,
             layerControl: null,
@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         this.drawItems = L.geoJSON(existingGeoJson, {
                             pointToLayer: (feature, latlng) => {
                                 const svgIcon = L.divIcon({
-                                    html: `
+                                    html: feature.properties.icon || `
                                         <svg xmlns="http://www.w3.org/2000/svg" class="map-icon" width="36" height="36" viewBox="0 0 24 24"
                                             style="
                                                 fill: ${feature.properties.style.fillColor || "#3388ff"},
@@ -167,7 +167,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                     className: "",
                                     iconSize: [36, 36],
                                     iconAnchor: [18, 36],
-                                    popupAnchor: [0, -18]
+                                    popupAnchor: [0, -18],
+
+                                    ...feature.properties.icon || {}
                                 });
 
                                 return L.marker(latlng, {
@@ -177,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     fillColor: config.geoMan.filledColor || 'blue',
                                     weight: 2,
                                     fillOpacity: 0.2,
-                                    radius: feature.properties.radius || 10,
+                                    radius: 10,
                                     ...feature.properties.style || {}
                                 });
                             },
@@ -194,8 +196,19 @@ document.addEventListener('DOMContentLoaded', () => {
                                 }
                             },
                             onEachFeature: (feature, layer) => {
+                                if (feature.properties && feature.properties.tooltipContent) {
+                                    layer.bindTooltip(feature.properties.tooltipContent, {
+                                        permanent: true,
+                                        direction: 'center',
+
+                                        ...feature.properties.tooltipOptions || {},
+                                    });
+                                }
+
                                 if (feature.properties && feature.properties.popupContent) {
-                                    layer.bindPopup(feature.properties.popupContent);
+                                    layer.bindPopup(feature.properties.popupContent, {
+                                        ...feature.properties.popupOptions || {},
+                                    });
                                 } else if (feature.geometry.type === 'Polygon') {
                                     layer.bindPopup("Polygon Area");
                                 } else if (feature.geometry.type === 'Point') {
@@ -502,8 +515,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
     };
-
-    window.mapPicker = mapPicker;
 
     window.dispatchEvent(new CustomEvent('map-script-loaded'));
 });
