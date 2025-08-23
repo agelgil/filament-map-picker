@@ -35,7 +35,7 @@ class TestCase extends Orchestra
 
     protected function getPackageProviders($app)
     {
-        return [
+        $providers = [
             ActionsServiceProvider::class,
             BladeCaptureDirectiveServiceProvider::class,
             BladeHeroiconsServiceProvider::class,
@@ -52,6 +52,11 @@ class TestCase extends Orchestra
             WidgetsServiceProvider::class,
             MapPickerServiceProvider::class,
         ];
+
+        // Only register providers that exist in the installed Filament version
+        return array_values(array_filter($providers, function ($provider) {
+            return class_exists($provider);
+        }));
     }
 
     public function getEnvironmentSetUp($app): void

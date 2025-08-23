@@ -1,4 +1,4 @@
-# Filament V3 Map Picker
+# Filament V3/V4 Map Picker
 
 [![Latest Version on Packagist][ico-version]][link-packagist]
 [![Total Downloads][ico-downloads]][link-downloads]
