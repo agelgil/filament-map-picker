@@ -4,12 +4,8 @@ declare(strict_types=1);
 
 namespace Agelgil\MapPicker\Concerns;
 
-use Filament\Forms\Concerns\HasStateBindingModifiers;
-
 trait HasMap
 {
-    use HasStateBindingModifiers;
-
     private array $extraStyle = [
         'min-height: 50vh',
     ];
